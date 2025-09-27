@@ -19,7 +19,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: config.corsOrigin,
+    origin: "https://incandescent-pavlova-dc36ec.netlify.app",
     credentials: false
   })
 );
