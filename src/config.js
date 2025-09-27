@@ -16,5 +16,5 @@ export const config = {
     privateKey: process.env.VAPID_PRIVATE_KEY,
     subject: process.env.VAPID_SUBJECT
   },
-  iceServers: JSON.parse(process.env.ICE_SERVERS_JSON || "[]")
+  iceServers: JSON.parse('[{"urls":"stun:stun.l.google.com:19302"}]' || "[]")
 };
