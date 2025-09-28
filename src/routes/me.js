@@ -43,13 +43,27 @@ router.patch("/me/location", auth(true), async (req, res) => {
 
 router.patch("/me/status", auth(true), async (req, res) => {
   const { isOnline, inCall } = req.body;
+  
+  // If user is coming online, automatically reset inCall to false unless explicitly set
+  const updateData = {};
+  
+  if (typeof isOnline === "boolean") {
+    updateData.isOnline = isOnline;
+    // When coming online, reset inCall status unless explicitly provided
+    if (isOnline && typeof inCall !== "boolean") {
+      updateData.inCall = false;
+    }
+  }
+  
+  if (typeof inCall === "boolean") {
+    updateData.inCall = inCall;
+  }
+  
   await prisma.user.update({
     where: { id: req.user.id },
-    data: {
-      ...(typeof isOnline === "boolean" ? { isOnline } : {}),
-      ...(typeof inCall === "boolean" ? { inCall } : {})
-    }
+    data: updateData
   });
+  
   return res.json({ ok: true });
 });
 

@@ -81,6 +81,49 @@ server.listen(config.port, () => {
   console.log(`API on :${config.port}`);
 });
 
+// Periodic cleanup of stale call statuses (every 5 minutes)
+setInterval(async () => {
+  try {
+    console.log("Running periodic cleanup of stale calls...");
+    
+    // Find call logs that started more than 30 minutes ago and haven't ended
+    const staleCallLogs = await prisma.callLog.findMany({
+      where: {
+        endedAt: null,
+        startedAt: {
+          lt: new Date(Date.now() - 30 * 60 * 1000) // 30 minutes ago
+        }
+      }
+    });
+
+    if (staleCallLogs.length > 0) {
+      console.log(`Found ${staleCallLogs.length} stale calls, cleaning up...`);
+      
+      // End these calls and reset user statuses
+      for (const callLog of staleCallLogs) {
+        await prisma.$transaction([
+          prisma.callLog.update({
+            where: { id: callLog.id },
+            data: { endedAt: new Date() }
+          }),
+          prisma.user.update({
+            where: { id: callLog.callerId },
+            data: { inCall: false }
+          }),
+          prisma.user.update({
+            where: { id: callLog.calleeId },
+            data: { inCall: false }
+          })
+        ]);
+      }
+      
+      console.log(`Cleaned up ${staleCallLogs.length} stale calls`);
+    }
+  } catch (error) {
+    console.error("Error in periodic cleanup:", error);
+  }
+}, 5 * 60 * 1000); // Run every 5 minutes
+
 process.on("SIGINT", async () => {
   await prisma.$disconnect();
   process.exit(0);
