@@ -8,26 +8,32 @@ datasource db {
 }
 
 model User {
-  id               String        @id @default(cuid())
-  email            String        @unique
-  passwordHash     String
-  displayName      String
-  avatarUrl        String?
-  lat              Float?
-  lng              Float?
-  radiusKmDefault  Int           @default(10)
-  isOnline         Boolean       @default(false)
-  inCall           Boolean       @default(false)
-  createdAt        DateTime      @default(now())
-  posts            Post[]
-  likes            Like[]
-  comments         Comment[]
-  blocks           Block[]       @relation("UserBlocks")
-  blockedBy        Block[]       @relation("BlockedBy")
-  pushSubs         PushSubscription[]
-  messages         ChatMessage[] @relation("UserMessages")
-  callLogsAsCaller CallLog[]     @relation("Caller")
-  callLogsAsCallee CallLog[]     @relation("Callee")
+  id                      String           @id @default(cuid())
+  email                   String           @unique
+  passwordHash            String
+  displayName             String
+  avatarUrl               String?
+  lat                     Float?
+  lng                     Float?
+  radiusKmDefault         Int              @default(10)
+  isOnline                Boolean          @default(false)
+  inCall                  Boolean          @default(false)
+  createdAt               DateTime         @default(now())
+  posts                   Post[]
+  likes                   Like[]
+  comments                Comment[]
+  blocks                  Block[]          @relation("UserBlocks")
+  blockedBy               Block[]          @relation("BlockedBy")
+  pushSubs                PushSubscription[]
+  messages                ChatMessage[]    @relation("UserMessages")
+  callLogsAsCaller        CallLog[]        @relation("Caller")
+  callLogsAsCallee        CallLog[]        @relation("Callee")
+  friendships1            Friendship[]     @relation("UserFriendships1")
+  friendships2            Friendship[]     @relation("UserFriendships2")
+  sentFriendRequests      FriendRequest[]  @relation("SentFriendRequests")
+  receivedFriendRequests  FriendRequest[]  @relation("ReceivedFriendRequests")
+  sentPrivateMessages     PrivateMessage[] @relation("SentPrivateMessages")
+  receivedPrivateMessages PrivateMessage[] @relation("ReceivedPrivateMessages")
 }
 
 model Post {
@@ -108,4 +114,40 @@ model CallLog {
   startedAt  DateTime @default(now())
   endedAt    DateTime?
   distanceKm Float?
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  user1     User     @relation("UserFriendships1", fields: [user1Id], references: [id])
+  user1Id   String
+  user2     User     @relation("UserFriendships2", fields: [user2Id], references: [id])
+  user2Id   String
+  createdAt DateTime @default(now())
+
+  @@unique([user1Id, user2Id])
+}
+
+model FriendRequest {
+  id          String   @id @default(cuid())
+  sender      User     @relation("SentFriendRequests", fields: [senderId], references: [id])
+  senderId    String
+  recipient   User     @relation("ReceivedFriendRequests", fields: [recipientId], references: [id])
+  recipientId String
+  message     String?
+  status      String   @default("pending") // pending, accepted, declined
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([senderId, recipientId])
+}
+
+model PrivateMessage {
+  id          String   @id @default(cuid())
+  sender      User     @relation("SentPrivateMessages", fields: [senderId], references: [id])
+  senderId    String
+  recipient   User     @relation("ReceivedPrivateMessages", fields: [recipientId], references: [id])
+  recipientId String
+  message     String
+  createdAt   DateTime @default(now())
+  readAt      DateTime?
 }

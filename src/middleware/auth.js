@@ -24,6 +24,8 @@ export function auth(required = true) {
   };
 }
 
+export const requireAuth = auth(true);
+
 export function signTokens(user) {
   const access = jwt.sign({ id: user.id, email: user.email }, config.jwt.secret, {
     expiresIn: config.jwt.accessExp

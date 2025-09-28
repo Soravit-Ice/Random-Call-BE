@@ -6,7 +6,9 @@
     "start": "node src/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "node prisma/seed.js"
+    "prisma:seed": "node prisma/seed.js",
+    "prisma:push": "prisma db push",
+    "migrate:friends": "node migrate.js"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",

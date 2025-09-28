@@ -10,6 +10,8 @@ import meRoutes from "./routes/me.js";
 import feedRoutes from "./routes/feed.js";
 import notificationsRoutes from "./routes/notifications.js";
 import matchRoutes from "./routes/match.js";
+import friendsRoutes from "./routes/friends.js";
+import chatRoutes from "./routes/chat.js";
 import { attachSocket } from "./realtime/socket.js";
 import { setupVapid } from "./services/push.js";
 
@@ -52,6 +54,8 @@ app.use("/", meRoutes);
 app.use("/", feedRoutes);
 app.use("/", notificationsRoutes);
 app.use("/", matchRoutes);
+app.use("/", friendsRoutes);
+app.use("/", chatRoutes);
 
 app.get("/health", (_, res) => res.json({ ok: true }));
 
