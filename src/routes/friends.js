@@ -7,6 +7,7 @@ const router = Router();
 // Get user's friends
 router.get("/friends", requireAuth, async (req, res) => {
   try {
+    console.log("Fetching friends for user:", req.user.id);
     const userId = req.user.id;
 
     // Get friendships where user is either user1 or user2
@@ -37,6 +38,8 @@ router.get("/friends", requireAuth, async (req, res) => {
       }
     });
 
+    console.log("Found friendships:", friendships.length);
+
     // Map to get the friend (not the current user)
     const friends = friendships.map(friendship => {
       const friend = friendship.user1Id === userId ? friendship.user2 : friendship.user1;
@@ -46,10 +49,13 @@ router.get("/friends", requireAuth, async (req, res) => {
       };
     });
 
+    console.log("Returning friends:", friends.length);
     res.json(friends);
   } catch (error) {
     console.error("Error fetching friends:", error);
-    res.status(500).json({ error: "Failed to fetch friends" });
+    console.error("Error details:", error.message);
+    console.error("Stack trace:", error.stack);
+    res.status(500).json({ error: "Failed to fetch friends", details: error.message });
   }
 });
 
@@ -315,6 +321,37 @@ router.get("/friends/check/:userId", requireAuth, async (req, res) => {
   } catch (error) {
     console.error("Error checking friendship:", error);
     res.status(500).json({ error: "Failed to check friendship" });
+  }
+});
+
+// Get online users (for debugging and showing who's available)
+router.get("/users/online", requireAuth, async (req, res) => {
+  try {
+    const currentUserId = req.user.id;
+    
+    const onlineUsers = await prisma.user.findMany({
+      where: {
+        id: { not: currentUserId },
+        isOnline: true,
+        blockedBy: { none: { blockerId: currentUserId } },
+        blocks: { none: { blockedId: currentUserId } }
+      },
+      select: {
+        id: true,
+        displayName: true,
+        avatarUrl: true,
+        isOnline: true,
+        inCall: true,
+        lat: true,
+        lng: true
+      },
+      take: 50
+    });
+
+    res.json(onlineUsers);
+  } catch (error) {
+    console.error("Error fetching online users:", error);
+    res.status(500).json({ error: "Failed to fetch online users" });
   }
 });
 
